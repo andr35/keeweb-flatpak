@@ -1,0 +1,76 @@
+app-id: net.antelle.keeweb
+runtime: org.freedesktop.Platform
+runtime-version: "22.08"
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: "22.08"
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node18
+command: run.sh
+finish-args:
+  - --device=dri
+  - --share=ipc
+  - --share=network
+  - --socket=x11
+  - --talk-name=org.freedesktop.Notifications
+  - --socket=session-bus # Required otherwise does not work
+modules:
+  - name: "libsecret"
+    buildsystem: "meson"
+    config-opts:
+      - "-Dmanpage=false"
+      - "-Dvapi=false"
+      - "-Dgtk_doc=false"
+    cleanup:
+      - "/bin"
+      - "/include"
+      - "/lib/pkgconfig"
+      - "/share/gir-1.0"
+      - "/share/man"
+    sources:
+      - type: archive
+        url: https://download.gnome.org/sources/libsecret/0.19/libsecret-0.19.1.tar.xz
+        sha256: "8583e10179456ae2c83075d95455f156dc08db6278b32bf4bd61819335a30e3a"
+
+  - name: "keeweb"
+    buildsystem: "simple"
+    build-commands:
+      - chmod +x Keeweb.AppImage
+      - ./Keeweb.AppImage --appimage-extract
+      - rm Keeweb.AppImage
+
+      - desktop-file-edit --set-key Exec --set-value 'run.sh %u' squashfs-root/keeweb.desktop
+      - install -Dm644 squashfs-root/keeweb.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
+
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor
+      - cp -r squashfs-root/usr/share/icons/hicolor/* ${FLATPAK_DEST}/share/icons/hicolor
+
+      - install -Dm644 squashfs-root/usr/share/mime/keeweb.xml ${FLATPAK_DEST}/share/mime/packages/${FLATPAK_ID}.xml
+      - rm squashfs-root/usr/share/mime/keeweb.xml
+
+      - |
+        for lang in squashfs-root/locales/*.pak
+        do
+          locale="$(basename -s .pak $lang)"
+          install -Dm644 -t "squashfs-root/share/runtime/locale/${locale%%-*}/" "$lang"
+          ln -sf "${FLATPAK_DEST}/keeweb/share/runtime/locale/${locale%%-*}/$(basename $lang)" "squashfs-root/locales/$(basename $lang)"
+        done
+
+      - mv squashfs-root ${FLATPAK_DEST}/keeweb
+
+    sources:
+      - type: file
+        only-arches:
+          - x86_64
+        url: https://github.com/keeweb/keeweb/releases/download/v1.18.7/KeeWeb-1.18.7.linux.AppImage
+        sha256: "5b70dfa3b6197cb39ba1d012ed93778ea9d8ccb3409e32487c90ba8a5e531f06"
+        dest_filename: Keeweb.AppImage
+        strip-components: 0
+
+  - name: "run"
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 run.sh /app/bin/run.sh
+    sources:
+      - type: file
+        path: run.sh
