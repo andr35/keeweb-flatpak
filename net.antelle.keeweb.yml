@@ -14,6 +14,7 @@ finish-args:
   - --socket=x11
   - --talk-name=org.freedesktop.Notifications
   - --socket=session-bus # Required otherwise does not work
+  - --filesystem=host # Accest to filesystem to load kdbx
 modules:
   - name: "libsecret"
     buildsystem: "meson"
@@ -40,10 +41,26 @@ modules:
       - rm Keeweb.AppImage
 
       - desktop-file-edit --set-key Exec --set-value 'run.sh %u' squashfs-root/keeweb.desktop
+      - desktop-file-edit --set-key Icon --set-value ${FLATPAK_ID} squashfs-root/keeweb.desktop
       - install -Dm644 squashfs-root/keeweb.desktop ${FLATPAK_DEST}/share/applications/${FLATPAK_ID}.desktop
 
-      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor
-      - cp -r squashfs-root/usr/share/icons/hicolor/* ${FLATPAK_DEST}/share/icons/hicolor
+      # - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor
+      # - cp -r squashfs-root/usr/share/icons/hicolor/* ${FLATPAK_DEST}/share/icons/hicolor
+
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps
+      - cp -r squashfs-root/usr/share/icons/hicolor/128x128/apps/keeweb.png ${FLATPAK_DEST}/share/icons/hicolor/128x128/apps/${FLATPAK_ID}.png
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/16x16/apps
+      - cp -r squashfs-root/usr/share/icons/hicolor/16x16/apps/keeweb.png ${FLATPAK_DEST}/share/icons/hicolor/16x16/apps/${FLATPAK_ID}.png
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps
+      - cp -r squashfs-root/usr/share/icons/hicolor/256x256/apps/keeweb.png ${FLATPAK_DEST}/share/icons/hicolor/256x256/apps/${FLATPAK_ID}.png
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/32x32/apps
+      - cp -r squashfs-root/usr/share/icons/hicolor/32x32/apps/keeweb.png ${FLATPAK_DEST}/share/icons/hicolor/32x32/apps/${FLATPAK_ID}.png
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/48x48/apps
+      - cp -r squashfs-root/usr/share/icons/hicolor/48x48/apps/keeweb.png ${FLATPAK_DEST}/share/icons/hicolor/48x48/apps/${FLATPAK_ID}.png
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps
+      - cp -r squashfs-root/usr/share/icons/hicolor/512x512/apps/keeweb.png ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
+      - mkdir -p ${FLATPAK_DEST}/share/icons/hicolor/64x64/apps
+      - cp -r squashfs-root/usr/share/icons/hicolor/64x64/apps/keeweb.png ${FLATPAK_DEST}/share/icons/hicolor/64x64/apps/${FLATPAK_ID}.png
 
       - install -Dm644 squashfs-root/usr/share/mime/keeweb.xml ${FLATPAK_DEST}/share/mime/packages/${FLATPAK_ID}.xml
       - rm squashfs-root/usr/share/mime/keeweb.xml
